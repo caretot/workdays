@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Shift Schedule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .lang-dropdown {
+            position: relative;
+        }
+
+        .lang-btn {
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            color: #e0e0e0;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lang-btn:hover {
+            border-color: #4a4a4a;
+        }
+
+        .lang-options {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 6px;
+            overflow: hidden;
+            z-index: 100;
+            min-width: 150px;
+        }
+
+        .lang-options.show {
+            display: block;
+        }
+
+        .lang-option {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .lang-option:hover {
+            background: #3a3a3a;
+        }
+
+        .lang-option.active {
+            background: #3a3a3a;
+            color: #4a9eff;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-btn {
+            background: #1a3a1a;
+            border: 2px solid #2a4a2a;
+            color: #7ac77a;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .view-btn:hover {
+            border-color: #3a5a3a;
+        }
+
+        .view-btn.active {
+            background: #2a5a2a;
+            border-color: #4a8a4a;
+            color: #aaffaa;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            color: #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            border-color: #4a4a4a;
+            background: #3a3a3a;
+        }
+
+        .current-month {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        input[type="date"] {
+            background: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            color: #e0e0e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .calendar-view {
+            display: none;
+        }
+
+        .calendar-view.active {
+            display: block;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background: #2a2a2a;
+            padding: 2px;
+            border-radius: 8px;
+        }
+
+        .calendar-header {
+            background: #2a2a2a;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            background: #1a1a1a;
+            min-height: 120px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calendar-day:hover {
+            background: #252525;
+        }
+
+        .day-number {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .day-number.today {
+            color: #4a9eff;
+        }
+
+        .day-number.other-month {
+            opacity: 0.3;
+        }
+
+        .shift-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .shift-bar {
+            height: 24px;
+            border-radius: 3px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .elshad-morning { background: #d32f2f; color: white; }
+        .elshad-night { background: #8b0000; color: white; }
+        .elshad-home1 { background: #388e3c; color: white; }
+        .elshad-home2 { background: #1b5e20; color: white; }
+        
+        .elvin-morning { background: #9c27b0; color: white; }
+        .elvin-night { background: #4a148c; color: white; }
+        .elvin-home1 { background: #fbc02d; color: black; }
+        .elvin-home2 { background: #f57f17; color: white; }
+        
+        .eli-morning { background: #f57c00; color: white; }
+        .eli-night { background: #bf360c; color: white; }
+        .eli-home1 { background: #1976d2; color: white; }
+        .eli-home2 { background: #0d47a1; color: white; }
+
+        .daily-view {
+            display: none;
+        }
+
+        .daily-view.active {
+            display: block;
+        }
+
+        .person-card {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .person-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .shift-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .shift-detail {
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .legend {
+            margin-top: 25px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .legend-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .legend-section {
+            margin-bottom: 20px;
+        }
+
+        .legend-person-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 40px;
+            height: 24px;
+            border-radius: 4px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-day {
+                min-height: 100px;
+                padding: 5px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .shift-bar {
+                height: 20px;
+                font-size: 9px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .view-toggle {
+                justify-content: center;
+            }
+
+            .legend-items {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-header {
+                font-size: 11px;
+                padding: 8px 4px;
+            }
+
+            .calendar-day {
+                min-height: 85px;
+                padding: 4px;
+            }
+
+            .shift-bar {
+                height: 18px;
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="lang-dropdown">
+                <button class="lang-btn" id="langBtn">
+                    🌐 <span id="currentLang">English</span> ▼
+                </button>
+                <div class="lang-options" id="langOptions">
+                    <div class="lang-option active" data-lang="en">English</div>
+                    <div class="lang-option" data-lang="az">Azərbaycan</div>
+                    <div class="lang-option" data-lang="ru">Русский</div>
+                </div>
+            </div>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="calendar" id="calendarViewBtn">📅 <span class="view-calendar-text">Calendar</span></button>
+                <button class="view-btn" data-view="daily" id="dailyViewBtn">📋 <span class="view-daily-text">Daily View</span></button>
+            </div>
+        </div>
+
+        <div class="nav-controls">
+            <button class="nav-btn" id="prevMonth">←</button>
+            <span class="current-month" id="currentMonth"></span>
+            <button class="nav-btn" id="nextMonth">→</button>
+            <input type="date" id="datePicker">
+        </div>
+
+        <div class="calendar-view active" id="calendarView">
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="legend">
+                <div class="legend-title" id="legendTitle">Color Guide / Rəng Bələdçisi / Цветовая легенда</div>
+                
+                <div class="legend-section">
+                    <div class="legend-person-name" style="color: #d32f2f;">Elshad Ildarov</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color elshad-morning">M</div>
+                            <span class="legend-morning-text">Morning Shift (8 AM - 8 PM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elshad-night">N</div>
+                            <span class="legend-night-text">Night Shift (8 PM - 8 AM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elshad-home1">H1</div>
+                            <span class="legend-home1-text">1st Home Day</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elshad-home2">H2</div>
+                            <span class="legend-home2-text">2nd Home Day</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-person-name" style="color: #9c27b0;">Elvin Mammadov</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color elvin-morning">M</div>
+                            <span class="legend-morning-text">Morning Shift (8 AM - 8 PM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elvin-night">N</div>
+                            <span class="legend-night-text">Night Shift (8 PM - 8 AM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elvin-home1">H1</div>
+                            <span class="legend-home1-text">1st Home Day</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color elvin-home2">H2</div>
+                            <span class="legend-home2-text">2nd Home Day</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <div class="legend-person-name" style="color: #f57c00;">Eli Babayev</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color eli-morning">M</div>
+                            <span class="legend-morning-text">Morning Shift (8 AM - 8 PM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color eli-night">N</div>
+                            <span class="legend-night-text">Night Shift (8 PM - 8 AM)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color eli-home1">H1</div>
+                            <span class="legend-home1-text">1st Home Day</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color eli-home2">H2</div>
+                            <span class="legend-home2-text">2nd Home Day</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="daily-view" id="dailyView">
+            <div id="dailyContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                calendar: 'Calendar',
+                dailyView: 'Daily View',
+                morning: 'Morning Shift',
+                night: 'Night Shift',
+                home1: '1st Home Day',
+                home2: '2nd Home Day',
+                morningTime: '8:00 AM - 8:00 PM',
+                nightTime: '8:00 PM - 8:00 AM',
+                days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+            },
+            az: {
+                calendar: 'Təqvim',
+                dailyView: 'Günlük',
+                morning: 'Səhər növbəsi',
+                night: 'Gecə növbəsi',
+                home1: '1-ci Evdə Gün',
+                home2: '2-ci Evdə Gün',
+                morningTime: '8:00 - 20:00',
+                nightTime: '20:00 - 8:00',
+                days: ['B.', 'B.e', 'Ç.a', 'Ç.', 'C.a', 'C.', 'Ş.'],
+                months: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr']
+            },
+            ru: {
+                calendar: 'Календарь',
+                dailyView: 'День',
+                morning: 'Утренняя смена',
+                night: 'Ночная смена',
+                home1: '1-й Выходной',
+                home2: '2-й Выходной',
+                morningTime: '8:00 - 20:00',
+                nightTime: '20:00 - 8:00',
+                days: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+            }
+        };
+
+        let currentLang = 'en';
+        let currentDate = new Date();
+        let currentView = 'calendar';
+        let selectedDate = new Date();
+
+        // Reference date: Oct 13, 2025
+        // Elshad: Morning, Elvin: Night, Eli: Home2
+        const referenceDate = new Date(2025, 9, 13);
+
+        function getShiftForPerson(date, person) {
+            const daysDiff = Math.floor((date - referenceDate) / (1000 * 60 * 60 * 24));
+            let cycleDay;
+            
+            if (person === 'elshad') {
+                cycleDay = ((daysDiff % 4) + 4) % 4;
+            } else if (person === 'elvin') {
+                cycleDay = (((daysDiff + 1) % 4) + 4) % 4;
+            } else { // eli
+                cycleDay = (((daysDiff - 1) % 4) + 4) % 4;
+            }
+            
+            if (cycleDay === 0) return 'morning';
+            if (cycleDay === 1) return 'night';
+            if (cycleDay === 2) return 'home1';
+            return 'home2';
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0);
+            
+            const firstDayOfWeek = firstDay.getDay();
+            const lastDate = lastDay.getDate();
+            const prevLastDate = prevLastDay.getDate();
+            
+            const t = translations[currentLang];
+            document.getElementById('currentMonth').textContent = `${t.months[month]} ${year}`;
+            
+            let html = '';
+            t.days.forEach(day => {
+                html += `<div class="calendar-header">${day}</div>`;
+            });
+            
+            for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                const date = new Date(year, month - 1, prevLastDate - i);
+                html += renderDay(date, true);
+            }
+            
+            for (let i = 1; i <= lastDate; i++) {
+                const date = new Date(year, month, i);
+                html += renderDay(date, false);
+            }
+            
+            const remainingDays = 7 - ((firstDayOfWeek + lastDate) % 7);
+            if (remainingDays < 7) {
+                for (let i = 1; i <= remainingDays; i++) {
+                    const date = new Date(year, month + 1, i);
+                    html += renderDay(date, true);
+                }
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        function renderDay(date, otherMonth) {
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const dayClass = otherMonth ? 'other-month' : '';
+            const todayClass = isToday ? 'today' : '';
+            
+            const elshadShift = getShiftForPerson(date, 'elshad');
+            const elvinShift = getShiftForPerson(date, 'elvin');
+            const eliShift = getShiftForPerson(date, 'eli');
+            
+            function getShiftLabel(shift) {
+                if (shift === 'morning') return 'M';
+                if (shift === 'night') return 'N';
+                if (shift === 'home1') return 'H1';
+                return 'H2';
+            }
+            
+            return `
+                <div class="calendar-day" onclick="selectDay('${date.toISOString()}')">
+                    <div class="day-number ${dayClass} ${todayClass}">${date.getDate()}</div>
+                    <div class="shift-bars">
+                        <div class="shift-bar elshad-${elshadShift}">
+                            ${getShiftLabel(elshadShift)}
+                        </div>
+                        <div class="shift-bar elvin-${elvinShift}">
+                            ${getShiftLabel(elvinShift)}
+                        </div>
+                        <div class="shift-bar eli-${eliShift}">
+                            ${getShiftLabel(eliShift)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectDay(dateStr) {
+            selectedDate = new Date(dateStr);
+            currentView = 'daily';
+            updateView();
+            renderDailyView();
+        }
+
+        function renderDailyView() {
+            const t = translations[currentLang];
+            const dateStr = `${selectedDate.getDate()} ${t.months[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+            
+            const elshadShift = getShiftForPerson(selectedDate, 'elshad');
+            const elvinShift = getShiftForPerson(selectedDate, 'elvin');
+            const eliShift = getShiftForPerson(selectedDate, 'eli');
+            
+            function getShiftHTML(shift, person) {
+                let text = '';
+                let bgColor = '';
+                
+                if (shift === 'morning') {
+                    text = `${t.morning}: ${t.morningTime}`;
+                    bgColor = person === 'elshad' ? '#d32f2f' : person === 'elvin' ? '#9c27b0' : '#f57c00';
+                } else if (shift === 'night') {
+                    text = `${t.night}: ${t.nightTime}`;
+                    bgColor = person === 'elshad' ? '#8b0000' : person === 'elvin' ? '#4a148c' : '#bf360c';
+                } else if (shift === 'home1') {
+                    text = t.home1;
+                    bgColor = person === 'elshad' ? '#388e3c' : person === 'elvin' ? '#fbc02d' : '#1976d2';
+                } else {
+                    text = t.home2;
+                    bgColor = person === 'elshad' ? '#1b5e20' : person === 'elvin' ? '#f57f17' : '#0d47a1';
+                }
+                
+                return `<div class="shift-detail" style="background: ${bgColor}; color: ${person === 'elvin' && shift === 'home1' ? 'black' : 'white'};">${text}</div>`;
+            }
+            
+            document.getElementById('dailyContent').innerHTML = `
+                <h2 style="margin-bottom: 25px; text-align: center; font-size: 24px;">${dateStr}</h2>
+                
+                <div class="person-card">
+                    <div class="person-name" style="color: #d32f2f;">Elshad Ildarov</div>
+                    <div class="shift-info">
+                        ${getShiftHTML(elshadShift, 'elshad')}
+                    </div>
+                </div>
+                
+                <div class="person-card">
+                    <div class="person-name" style="color: #9c27b0;">Elvin Mammadov</div>
+                    <div class="shift-info">
+                        ${getShiftHTML(elvinShift, 'elvin')}
+                    </div>
+                </div>
+                
+                <div class="person-card">
+                    <div class="person-name" style="color: #f57c00;">Eli Babayev</div>
+                    <div class="shift-info">
+                        ${getShiftHTML(eliShift, 'eli')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateView() {
+            document.getElementById('calendarView').classList.toggle('active', currentView === 'calendar');
+            document.getElementById('dailyView').classList.toggle('active', currentView === 'daily');
+            
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === currentView);
+            });
+            
+            if (currentView === 'calendar') {
+                renderCalendar();
+            } else {
+                renderDailyView();
+            }
+        }
+
+        function updateLanguage() {
+            const t = translations[currentLang];
+            const langNames = {en: 'English', az: 'Azərbaycan', ru: 'Русский'};
+            document.getElementById('currentLang').textContent = langNames[currentLang];
+            
+            document.querySelector('.view-calendar-text').textContent = t.calendar;
+            document.querySelector('.view-daily-text').textContent = t.dailyView;
+            
+            document.querySelectorAll('.legend-morning-text').forEach(el => el.textContent = `${t.morning} (${t.morningTime})`);
+            document.querySelectorAll('.legend-night-text').forEach(el => el.textContent = `${t.night} (${t.nightTime})`);
+            document.querySelectorAll('.legend-home1-text').forEach(el => el.textContent = t.home1);
+            document.querySelectorAll('.legend-home2-text').forEach(el => el.textContent = t.home2);
+            
+            updateView();
+        }
+
+        document.getElementById('langBtn').addEventListener('click', () => {
+            document.getElementById('langOptions').classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.lang-dropdown')) {
+                document.getElementById('langOptions').classList.remove('show');
+            }
+        });
+
+        document.querySelectorAll('.lang-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                currentLang = option.dataset.lang;
+                updateLanguage();
+                document.getElementById('langOptions').classList.remove('show');
+            });
+        });
+
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentView = btn.dataset.view;
+                updateView();
+            });
+        });
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        document.getElementById('datePicker').addEventListener('change', (e) => {
+            const parts = e.target.value.split('-');
+            selectedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            currentDate = new Date(selectedDate);
+            currentView = 'daily';
+            updateView();
+        });
+
+        window.selectDay = selectDay;
+
+        renderCalendar();
+    </script>
+</body>
+</html>
